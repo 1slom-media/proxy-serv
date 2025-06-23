@@ -1,4 +1,3 @@
-// proxy.js
 const express = require("express");
 const axios = require("axios");
 const app = express();
@@ -6,30 +5,70 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Universal proxy: GET, POST, PUT, DELETE — hammasi ishlaydi
-app.all("/proxy", async (req, res) => {
+// 🔑 /proxy/login
+app.post("/proxy/login", async (req, res) => {
   try {
-    const { method, headers, body, query } = req;
-
-    const apiUrl =
-      "http://192.0.2.14:40040/services/open-api-payment-ms/api/json-rpc"; // API manzilingiz shu yerga
-
-    const response = await axios({
-      method,
-      url: apiUrl,
-      headers,
-      params: query,
-      data: body,
-    });
-
+    const response = await axios.post(
+      "http://192.0.2.14:40040/api/ext/user/login",
+      req.body,
+      { headers: req.headers }
+    );
     res.status(response.status).send(response.data);
   } catch (error) {
     res
       .status(error.response?.status || 500)
-      .send(error.response?.data || "Proxy error");
+      .send(error.response?.data || "Login proxy error");
   }
 });
 
-app.listen(2002, () => {
-  console.log("Proxy server is running on port 3001");
+// 🔁 /proxy/refresh-token
+app.post("/proxy/refresh-token", async (req, res) => {
+  try {
+    const response = await axios.post(
+      "http://192.0.2.14:40040/api/ext/user/refresh-token",
+      req.body,
+      { headers: req.headers }
+    );
+    res.status(response.status).send(response.data);
+  } catch (error) {
+    res
+      .status(error.response?.status || 500)
+      .send(error.response?.data || "Refresh token proxy error");
+  }
+});
+
+// 💸 /proxy/payment
+app.post("/proxy/payment", async (req, res) => {
+  try {
+    const response = await axios.post(
+      "http://192.0.2.14:40040/services/open-api-payment-ms/api/json-rpc",
+      req.body,
+      { headers: req.headers }
+    );
+    res.status(response.status).send(response.data);
+  } catch (error) {
+    res
+      .status(error.response?.status || 500)
+      .send(error.response?.data || "Payment proxy error");
+  }
+});
+
+// 📦 /proxy/services
+app.post("/proxy/services", async (req, res) => {
+  try {
+    const response = await axios.post(
+      "http://192.0.2.14:40040/services/open-api-services-ms/api/json-rpc",
+      req.body,
+      { headers: req.headers }
+    );
+    res.status(response.status).send(response.data);
+  } catch (error) {
+    res
+      .status(error.response?.status || 500)
+      .send(error.response?.data || "Services proxy error");
+  }
+});
+
+app.listen(2002, "0.0.0.0", () => {
+  console.log("Proxy server is running on port 2002");
 });
