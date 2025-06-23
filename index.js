@@ -5,13 +5,23 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// 🧹 Faqat kerakli headerlarni olib, default qo‘shish
+const buildHeaders = (req) => {
+  return {
+    "Content-Type": "application/json",
+    ...(req.headers.authorization && {
+      Authorization: req.headers.authorization,
+    }),
+  };
+};
+
 // 🔑 /proxy/login
 app.post("/proxy/login", async (req, res) => {
   try {
     const response = await axios.post(
       "http://192.0.2.14:40040/api/ext/user/login",
       req.body,
-      { headers: req.headers }
+      { headers: buildHeaders(req) }
     );
     res.status(response.status).send(response.data);
   } catch (error) {
@@ -27,7 +37,7 @@ app.post("/proxy/refresh-token", async (req, res) => {
     const response = await axios.post(
       "http://192.0.2.14:40040/api/ext/user/refresh-token",
       req.body,
-      { headers: req.headers }
+      { headers: buildHeaders(req) }
     );
     res.status(response.status).send(response.data);
   } catch (error) {
@@ -43,7 +53,7 @@ app.post("/proxy/payment", async (req, res) => {
     const response = await axios.post(
       "http://192.0.2.14:40040/services/open-api-payment-ms/api/json-rpc",
       req.body,
-      { headers: req.headers }
+      { headers: buildHeaders(req) }
     );
     res.status(response.status).send(response.data);
   } catch (error) {
@@ -59,7 +69,7 @@ app.post("/proxy/services", async (req, res) => {
     const response = await axios.post(
       "http://192.0.2.14:40040/services/open-api-services-ms/api/json-rpc",
       req.body,
-      { headers: req.headers }
+      { headers: buildHeaders(req) }
     );
     res.status(response.status).send(response.data);
   } catch (error) {
@@ -70,5 +80,5 @@ app.post("/proxy/services", async (req, res) => {
 });
 
 app.listen(2002, "0.0.0.0", () => {
-  console.log("Proxy server is running on port 2002");
+  console.log("✅ Proxy server is running on port 2002");
 });
