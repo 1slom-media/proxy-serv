@@ -15,6 +15,15 @@ const buildHeaders = (req) => {
   };
 };
 
+const buildHeaders2 = (req) => ({
+  ...(req.headers["content-type"] && {
+    "Content-Type": req.headers["content-type"],
+  }),
+  ...(req.headers["authorization"] && {
+    Authorization: req.headers["authorization"],
+  }),
+});
+
 // 🔑 /proxy/login
 app.post("/proxy/login", async (req, res) => {
   try {
@@ -71,6 +80,21 @@ app.post("/proxy/services", async (req, res) => {
       req.body,
       { headers: buildHeaders(req) }
     );
+    res.status(response.status).send(response.data);
+  } catch (error) {
+    res
+      .status(error.response?.status || 500)
+      .send(error.response?.data || "Services proxy error");
+  }
+});
+
+// 📦 /proxy/services
+app.post("/proxy/score-univer", async (req, res) => {
+  try {
+    const { url, data } = req.body;
+    const response = await axios.post(`${url}`, data, {
+      headers: buildHeaders2(req),
+    });
     res.status(response.status).send(response.data);
   } catch (error) {
     res
